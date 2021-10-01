@@ -1,0 +1,4 @@
+mplfinance
+redis
+requests
+yfinance
