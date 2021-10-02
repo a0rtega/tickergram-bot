@@ -1,7 +1,9 @@
 
-<img alt="tickergram logo" src="media/tickergram_logo.png" align="left" width="128px">
+<p align="center">
+  <img alt="tickergram-logo" src="media/tickergram_logo.png">
+</p>
 
-## What's Tickergram?
+# What's Tickergram?
 
 Tickergram is a Telegram bot to look up quotes, charts, general market sentiment and more. It can be used collaboratively in group chats or by talking directly to it. Users can also keep a watchlist and receive price information notifications.
 
