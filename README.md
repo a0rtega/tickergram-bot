@@ -1,13 +1,11 @@
 
-<p align="center">
-  <img alt="tickergram logo" src="media/tickergram_logo.png">
-</p>
+<img alt="tickergram logo" src="media/tickergram_logo.png" align="left" width="128px">
 
-# What's Tickergram?
+## What's Tickergram?
 
 Tickergram is a Telegram bot to look up quotes, charts, general market sentiment and more. It can be used collaboratively in group chats or by talking directly to it. Users can also keep a watchlist and receive price information notifications.
 
-# Supporting Tickergram
+## Supporting Tickergram
 
 I maintain an instance of Tickergram running at [@tickergrambot](https://t.me/tickergrambot). By becoming a sponsor, you will support the project and get access to this bot instance. Check the [sponsor](https://github.com/sponsors/a0rtega) tiers for more information.
 
@@ -68,10 +66,10 @@ After sending the Telegram message `/start` or `/help` to the bot, it will reply
 
 The bot administrator can notify chat watchlists (when notifications are enabled) with the command `tickergram-notify`. It may be a good idea to run this command on a regular basis (for example at market open) using crontab.
 
-# Author
+## Author
 
 Alberto Ortega
 
-# License
+## License
 
 [MIT](LICENSE)
