@@ -9,14 +9,24 @@ Tickergram is a Telegram bot to look up quotes, charts, general market sentiment
 
 ## Supporting Tickergram
 
-I maintain an instance of Tickergram running at [@tickergrambot](https://t.me/tickergrambot). By becoming a sponsor, you will support the project and get access to this bot instance. Check the [sponsor](https://github.com/sponsors/a0rtega) tiers for more information.
+I run an instance of Tickergram at [@tickergrambot](https://t.me/tickergrambot). By becoming a sponsor, you will support the project and get access to this bot instance. Check the [sponsor](https://github.com/sponsors/a0rtega) tiers for more information.
+
+Or continue reading and get your own bot running in no time!
+
+## Bot commands
+
+- `/quote` *\<symbol\>* get quote
+- `/chart` *\<symbol\> \[1y,6m,5d\]* get price and volume chart
+- `/watch` *list\|add\|del* *\[symbol\]* list, add or remove symbol from your watchlist
+- `/watchlist` get an overview of your watchlist
+- `/watchlistnotify` toggle the automatic watchlist notifications on and off
+- `/overview` get an overview of global ETFs
+- `/feargreed` get picture of CNN's Fear & Greed Index
 
 <p align="center">
   <img alt="quote and chart" src="media/quote_chart.jpg">
   <img alt="watchlist" src="media/watchlist.jpg">
 </p>
-
-Or continue reading and get your own instance running in no time!
 
 ## Requirements
 
