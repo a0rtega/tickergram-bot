@@ -15,9 +15,9 @@ Or continue reading and get your own bot running in no time!
 
 ## Bot commands
 
-- `/quote` *\<symbol\>* get quote
-- `/chart` *\<symbol\> \[1y,6m,5d\]* get price and volume chart
-- `/watch` *list\|add\|del* *\[symbol\]* list, add or remove symbol from your watchlist
+- `/quote` **\<symbol\>** get quote
+- `/chart` **\<symbol\> \[1y,6m,5d\]** get price and volume chart
+- `/watch` **list\|add\|del \[symbol\]** list, add or remove symbol from your watchlist
 - `/watchlist` get an overview of your watchlist
 - `/watchlistnotify` toggle the automatic watchlist notifications on and off
 - `/overview` get an overview of global ETFs
