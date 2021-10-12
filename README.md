@@ -39,7 +39,7 @@ Or continue reading and get your own bot running in no time!
 
 - Talk to the [@BotFather](https://t.me/botfather) to create a new bot and get its token.
 - Install Redis.
-- Install Tickergram and its dependencies by running `python setup.py install`.
+- Install Tickergram and its dependencies by running `python setup.py install` or `pip install https://github.com/a0rtega/tickergram-bot/archive/refs/heads/main.zip`.
 - Run the bot with the assistance of the self-explanatory help message:
 
 ```
