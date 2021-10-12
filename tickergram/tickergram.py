@@ -101,7 +101,10 @@ class tickergram:
                 port=self.REDIS_PORT, db=self.REDIS_DB)
 
     def redis_ping(self):
-        return self.redis_get_db().ping()
+        try:
+            return self.redis_get_db().ping()
+        except:
+            return False
 
     def redis_add_chat_auth(self, chat_id):
         r = self.redis_get_db()
