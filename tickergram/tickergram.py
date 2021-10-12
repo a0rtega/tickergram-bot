@@ -192,8 +192,8 @@ class tickergram:
     def ticker_chg_emoji_color(self, sign):
         return u"\U0001F7E2" if sign == "+" else u"\U0001F534"
 
-    def text_quote_long(self, t, short_name, price, price_prevclose, price_change, ftweek_high, ftweek_high_chg, ftweek_low, ftweek_low_chg, volume,
-            volume_avg, pe, pe_forward, div_yield):
+    def text_quote_long(self, t, short_name, price, price_prevclose, price_change, ftweek_high, ftweek_high_chg, ftweek_low, ftweek_low_chg,
+            day_low, day_high, volume, volume_avg, pe, pe_forward, div_yield):
         price_chg_sign = "+" if price >= price_prevclose else "-"
         ftweek_high_chg_sign = "+" if price >= ftweek_high else "-"
         ftweek_low_chg_sign = "+" if price >= ftweek_low else "-"
@@ -206,10 +206,11 @@ class tickergram:
         text_msg += "{}\n".format(short_name)
         text_msg += "{}{} {:.2f} ({}{:.2f}%{})\n".format(self.ticker_chg_emoji_color(price_chg_sign), t, price, price_chg_sign, price_change, price_change_emoji)
         text_msg += "-"*len(t) + "\n"
+        text_msg += "Day's range {} - {}\n".format(day_low, day_high)
         text_msg += "52w high {:.2f} ({}{:.2f}%{})\n".format(ftweek_high, ftweek_high_chg_sign, ftweek_high_chg, ftweek_high_chg_emoji)
         text_msg += "52w low {:.2f} ({}{:.2f}%)\n".format(ftweek_low, ftweek_low_chg_sign, ftweek_low_chg)
-        text_msg += "volume {}\n".format(volume)
-        text_msg += "volume average {}\n".format(volume_avg)
+        text_msg += "Volume {}\n".format(volume)
+        text_msg += "Volume average {}\n".format(volume_avg)
         text_msg += "PE ratio {}\n".format(pe)
         text_msg += "PE ratio forward {}\n".format(pe_forward)
         text_msg += "Dividend yield {}\n".format(div_yield)
@@ -251,6 +252,8 @@ class tickergram:
         ret_data["previous_close"] = round(ty_info["previousClose"], 2)
         ret_data["52w_high"] = round(ty_info["fiftyTwoWeekHigh"], 2)
         ret_data["52w_low"] = round(ty_info["fiftyTwoWeekLow"], 2)
+        ret_data["day_high"] = round(ty_info["dayHigh"], 2)
+        ret_data["day_low"] = round(ty_info["dayLow"], 2)
         ret_data["market_volume"] = ty_info["regularMarketVolume"]
         ret_data["market_volume"] = f'{ret_data["market_volume"]:n}'
         ret_data["market_volume_avg"] = ty_info["averageVolume"]
@@ -398,6 +401,8 @@ class tickergram:
                 price_prevclose = ticker_info["previous_close"]
                 ftweek_high = ticker_info["52w_high"]
                 ftweek_low = ticker_info["52w_low"]
+                day_high = ticker_info["day_high"]
+                day_low = ticker_info["day_low"]
                 volume = ticker_info["market_volume"]
                 volume_avg = ticker_info["market_volume_avg"]
                 pe = ticker_info["pe_trailing"]
@@ -408,8 +413,8 @@ class tickergram:
                 ftweek_high_chg = self.get_change(price, ftweek_high)
                 ftweek_low_chg = self.get_change(price, ftweek_low)
                 # Compose message text
-                text_msg = self.text_quote_long(ticker, short_name, price, price_prevclose, price_change, ftweek_high, ftweek_high_chg, ftweek_low, ftweek_low_chg, volume,
-                        volume_avg, pe, pe_forward, div_yield)
+                text_msg = self.text_quote_long(ticker, short_name, price, price_prevclose, price_change, ftweek_high, ftweek_high_chg, ftweek_low, ftweek_low_chg,
+                        day_low, day_high, volume, volume_avg, pe, pe_forward, div_yield)
             else:
                 text_msg = "```\nError getting ticker info\n```"
             self.tg_delete_msg(proc_msg)
