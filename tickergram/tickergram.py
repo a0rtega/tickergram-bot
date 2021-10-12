@@ -207,11 +207,11 @@ class tickergram:
         ftweek_high_chg_emoji = ""+(u"\U00002757"*int(ftweek_high_chg/10))
         text_msg = "```\n"
         text_msg += "{}\n".format(short_name)
-        text_msg += "{}{} {} ({}{}%{})\n".format(self.ticker_chg_emoji_color(price_chg_sign), t, price, price_chg_sign, price_change, price_change_emoji)
+        text_msg += "{}{} {:.2f} ({}{:.2f}%{})\n".format(self.ticker_chg_emoji_color(price_chg_sign), t, price, price_chg_sign, price_change, price_change_emoji)
         text_msg += "-"*len(t) + "\n"
-        text_msg += "Day's range {} - {}\n".format(day_low, day_high)
-        text_msg += "52w high {} ({}{}%{})\n".format(ftweek_high, ftweek_high_chg_sign, ftweek_high_chg, ftweek_high_chg_emoji)
-        text_msg += "52w low {} ({}{}%)\n".format(ftweek_low, ftweek_low_chg_sign, ftweek_low_chg)
+        text_msg += "Day's range {:.2f} - {:.2f}\n".format(day_low, day_high)
+        text_msg += "52w high {:.2f} ({}{:.2f}%{})\n".format(ftweek_high, ftweek_high_chg_sign, ftweek_high_chg, ftweek_high_chg_emoji)
+        text_msg += "52w low {:.2f} ({}{:.2f}%)\n".format(ftweek_low, ftweek_low_chg_sign, ftweek_low_chg)
         text_msg += "Volume {}\n".format(volume)
         text_msg += "Volume average {}\n".format(volume_avg)
         text_msg += "PE ratio {}\n".format(pe)
@@ -228,7 +228,7 @@ class tickergram:
             price_change_emoji = ""
         ftweek_high_chg_sign = "+" if price >= ftweek_high else "-"
         ftweek_high_chg_emoji = ""+(u"\U00002757"*int(ftweek_high_chg/10))
-        text_msg = "{}{} {} ({}{}%{} 52w high chg {}{}%{})\n".format(self.ticker_chg_emoji_color(price_change_sign), self.ticker_add_emoji(t),
+        text_msg = "{}{} {:.2f} ({}{:.2f}%{} 52w high chg {}{:.2f}%{})\n".format(self.ticker_chg_emoji_color(price_change_sign), self.ticker_add_emoji(t),
                 price, price_change_sign, price_change, price_change_emoji, ftweek_high_chg_sign, ftweek_high_chg, ftweek_high_chg_emoji)
         return text_msg
 
@@ -262,13 +262,13 @@ class tickergram:
         ret_data["market_volume_avg"] = ty_info["averageVolume"]
         ret_data["market_volume_avg"] = f'{ret_data["market_volume_avg"]:n}'
         pe = ty_info.get("trailingPE", None)
-        pe = round(pe, 2) if pe else "N/A"
+        pe = "{:.2f}".format(round(pe, 2)) if pe else "N/A"
         ret_data["pe_trailing"] = pe
         pe_forward = ty_info.get("forwardPE", None)
-        pe_forward = round(pe_forward, 2) if pe_forward else "N/A"
+        pe_forward = "{:.2f}".format(round(pe_forward, 2)) if pe_forward else "N/A"
         ret_data["pe_forward"] = pe_forward
         div_yield = ty_info.get("dividendYield", None)
-        div_yield = "{}%".format(round(div_yield*100, 2)) if div_yield else "N/A"
+        div_yield = "{:.2f}%".format(round(div_yield*100, 2)) if div_yield else "N/A"
         ret_data["div_yield"] = div_yield
         self.redis_set_quote_cache(ticker, ret_data)
         return ret_data
