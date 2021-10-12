@@ -204,11 +204,11 @@ class tickergram:
         ftweek_high_chg_emoji = ""+(u"\U00002757"*int(ftweek_high_chg/10))
         text_msg = "```\n"
         text_msg += "{}\n".format(short_name)
-        text_msg += "{}{} {:.2f} ({}{:.2f}%{})\n".format(self.ticker_chg_emoji_color(price_chg_sign), t, price, price_chg_sign, price_change, price_change_emoji)
+        text_msg += "{}{} {} ({}{}%{})\n".format(self.ticker_chg_emoji_color(price_chg_sign), t, price, price_chg_sign, price_change, price_change_emoji)
         text_msg += "-"*len(t) + "\n"
         text_msg += "Day's range {} - {}\n".format(day_low, day_high)
-        text_msg += "52w high {:.2f} ({}{:.2f}%{})\n".format(ftweek_high, ftweek_high_chg_sign, ftweek_high_chg, ftweek_high_chg_emoji)
-        text_msg += "52w low {:.2f} ({}{:.2f}%)\n".format(ftweek_low, ftweek_low_chg_sign, ftweek_low_chg)
+        text_msg += "52w high {} ({}{}%{})\n".format(ftweek_high, ftweek_high_chg_sign, ftweek_high_chg, ftweek_high_chg_emoji)
+        text_msg += "52w low {} ({}{}%)\n".format(ftweek_low, ftweek_low_chg_sign, ftweek_low_chg)
         text_msg += "Volume {}\n".format(volume)
         text_msg += "Volume average {}\n".format(volume_avg)
         text_msg += "PE ratio {}\n".format(pe)
@@ -225,7 +225,7 @@ class tickergram:
             price_change_emoji = ""
         ftweek_high_chg_sign = "+" if price >= ftweek_high else "-"
         ftweek_high_chg_emoji = ""+(u"\U00002757"*int(ftweek_high_chg/10))
-        text_msg = "{}{} {:.2f} ({}{:.2f}%{} 52w high chg {}{:.2f}%{})\n".format(self.ticker_chg_emoji_color(price_change_sign), self.ticker_add_emoji(t),
+        text_msg = "{}{} {} ({}{}%{} 52w high chg {}{}%{})\n".format(self.ticker_chg_emoji_color(price_change_sign), self.ticker_add_emoji(t),
                 price, price_change_sign, price_change, price_change_emoji, ftweek_high_chg_sign, ftweek_high_chg, ftweek_high_chg_emoji)
         return text_msg
 
