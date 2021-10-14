@@ -19,6 +19,7 @@ class tickergram:
         self.REDIS_DB = redis_db
         self.TG_API="https://api.telegram.org/bot" + tg_token
         self.MAX_CHART_TIME = datetime.timedelta(days=3*365) # 3 years
+        self.POLLING_TIMEOUT = 600
         # Configure logging
         self.logger = logging.getLogger("tickergram_log")
         self.logger.setLevel(logging.DEBUG)
@@ -87,10 +88,10 @@ class tickergram:
         return d
 
     def tg_get_messages(self, offset=0, limit=1):
-        d = {"timeout": 300, "allowed_updates": ["message"], "limit": limit}
+        d = {"timeout": self.POLLING_TIMEOUT, "allowed_updates": ["message"], "limit": limit}
         if offset:
             d["offset"] = offset
-        r = requests.get(self.TG_API+"/getUpdates", params=d)
+        r = requests.get(self.TG_API+"/getUpdates", params=d, timeout=self.POLLING_TIMEOUT+30)
         d = r.json()
         if not d["ok"]:
             raise RuntimeError("tg_get_messages not ok")
