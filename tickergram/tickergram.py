@@ -44,7 +44,7 @@ class tickergram:
         return d
 
     def tg_send_msg(self, text, chat):
-        d = {"chat_id": chat, "text": text, "parse_mode": "MarkdownV2"}
+        d = {"chat_id": chat, "text": text, "parse_mode": "MarkdownV2", "disable_web_page_preview": True}
         r = requests.get(self.TG_API+"/sendMessage", params=d)
         d = r.json()
         if not d["ok"]:
@@ -52,7 +52,7 @@ class tickergram:
         return d
 
     def tg_send_msg_post(self, text, chat):
-        d = {"chat_id": chat, "text": text, "parse_mode": "MarkdownV2"}
+        d = {"chat_id": chat, "text": text, "parse_mode": "MarkdownV2", "disable_web_page_preview": True}
         r = requests.post(self.TG_API+"/sendMessage", params=d)
         d = r.json()
         if not d["ok"]:
@@ -238,6 +238,11 @@ class tickergram:
         # output format used in yf_get_quote
         return self.yf_get_quote(ticker)
 
+    def generic_get_news(self, ticker):
+        # Easily replace the data provider here, using the same standard
+        # output format used in yf_get_news
+        return self.yf_get_news(ticker)
+
     def yf_get_quote(self, ticker):
         # Get ticker cache before querying YF
         quote_cache = self.redis_get_quote_cache(ticker)
@@ -287,6 +292,19 @@ class tickergram:
         except:
             pass
         return output_file
+
+    def yf_get_news(self, ticker):
+        try:
+            ty = yf.Ticker(ticker)
+            ty_news = ty.news
+        except:
+            return None
+        ret_data = []
+        if ty_news:
+            for n in ty_news:
+                ret_data.append({"title": n["title"], "link": n["link"], "time":
+                    datetime.datetime.fromtimestamp(n["providerPublishTime"])})
+        return ret_data
 
     def cnn_get_fear_greed(self):
         output_file = "{}.png".format(str(uuid.uuid4()))
@@ -377,6 +395,7 @@ class tickergram:
             text_msg += "/auth *\<password\>* authorize chat to use this bot if password is correct\n"
         text_msg += "/quote *\<symbol\>* get quote\n"
         text_msg += "/chart *\<symbol\> \[1y,6m,5d\]* get price and volume chart\n"
+        text_msg += "/news *\<symbol\>* get the latest news related to the symbol\n"
         text_msg += "/watch *list\|add\|del* *\[symbol\]* list, add or remove symbol from your watchlist\n"
         text_msg += "/watchlist get an overview of your watchlist\n"
         text_msg += "/watchlistnotify toggle the automatic watchlist notifications on and off\n"
@@ -421,6 +440,24 @@ class tickergram:
                         day_low, day_high, volume, volume_avg, pe, pe_forward, div_yield)
             else:
                 text_msg = "```\nError getting ticker info\n```"
+            self.tg_delete_msg(proc_msg)
+        else:
+            text_msg = "```\nInvalid ticker\n```"
+        self.tg_send_msg_post(text_msg, chat["id"])
+
+    def bot_cmd_news(self, chat, text, msg_from):
+        ticker = text.replace("/news ", "").upper()
+        if self.valid_ticker(ticker):
+            proc_msg = self.tg_send_msg_post("```\nProcessing, please wait ...\n```", chat["id"])["result"]
+            ticker_news = self.generic_get_news(ticker)
+            if ticker_news:
+                text_msg = ""
+                for n in ticker_news:
+                    text_msg += "*{}*: `{}` \([link]({})\)\n".format(n["time"].strftime("%Y\-%m\-%d"),
+                            n["title"], n["link"])
+                text_msg = text_msg[:-1] # remove last newline
+            else:
+                text_msg = "```\nError getting ticker news\n```"
             self.tg_delete_msg(proc_msg)
         else:
             text_msg = "```\nInvalid ticker\n```"
@@ -604,7 +641,7 @@ class tickergram:
                 elif self.BOT_ENABLED_PASS and text.startswith("/auth "):
                     self.bot_cmd_auth(chat, text, msg_from)
                 else: # Authorized-only commands
-                    if not chat_auth and text.split(" ")[0] in ("/quote", "/chart",
+                    if not chat_auth and text.split(" ")[0] in ("/quote", "/chart", "/news",
                             "/watch", "/watchlist", "/watchlistnotify",
                             "/overview", "/feargreed"):
                         text_msg = "```\nUnauthorized\n```"
@@ -613,6 +650,8 @@ class tickergram:
                         self.bot_cmd_handler(self.bot_cmd_quote, chat, text, msg_from)
                     elif chat_auth and text.startswith("/chart "):
                         self.bot_cmd_handler(self.bot_cmd_chart, chat, text, msg_from)
+                    elif chat_auth and text.startswith("/news "):
+                        self.bot_cmd_handler(self.bot_cmd_news, chat, text, msg_from)
                     elif chat_auth and text.startswith("/watch "):
                         self.bot_cmd_handler(self.bot_cmd_watch, chat, text, msg_from)
                     elif chat_auth and text == "/watchlist":

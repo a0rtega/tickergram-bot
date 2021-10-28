@@ -17,6 +17,7 @@ Or continue reading and get your own bot running in no time!
 
 - `/quote` **\<symbol\>** get quote
 - `/chart` **\<symbol\> \[1y,6m,5d\]** get price and volume chart
+- `/news` **\<symbol\>** get the latest news related to the symbol
 - `/watch` **list\|add\|del \[symbol\]** list, add or remove symbol from your watchlist
 - `/watchlist` get an overview of your watchlist
 - `/watchlistnotify` toggle the automatic watchlist notifications on and off
