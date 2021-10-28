@@ -634,7 +634,7 @@ class tickergram:
                         self.logger.warning("Message from unauthorized chat: {} {}".format(msg_from, text))
                 # Remove explicit bot mention if found
                 # (telegram bot accounts always end with "bot")
-                text = re.sub(r"@\w+bot", "", text, flags=re.IGNORECASE)
+                text = re.sub(r"@[\w\.\-]+bot", "", text, flags=re.IGNORECASE)
                 # Handle commands
                 if text in ("/help", "/start"):
                     self.bot_cmd_help(chat, text, msg_from)
