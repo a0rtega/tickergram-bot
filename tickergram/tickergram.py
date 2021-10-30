@@ -453,7 +453,7 @@ class tickergram:
             if ticker_news:
                 text_msg = ""
                 for n in ticker_news:
-                    text_msg += "*{}*: `{}` \([link]({})\)\n".format(n["time"].strftime("%Y\-%m\-%d"),
+                    text_msg += u"\U00002022 *{}*: `{}` \([link]({})\)\n".format(n["time"].strftime("%Y\-%m\-%d"),
                             n["title"], n["link"])
                 text_msg = text_msg[:-1] # remove last newline
             else:
