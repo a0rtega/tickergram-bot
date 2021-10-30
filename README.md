@@ -21,7 +21,7 @@ Or continue reading and get your own bot running in no time!
 - `/watch` **list\|add\|del \[symbol\]** list, add or remove symbol from your watchlist
 - `/watchlist` get an overview of your watchlist
 - `/watchlistnotify` toggle the automatic watchlist notifications on and off
-- `/overview` get an overview of global ETFs
+- `/overview` get an overview of global markets
 - `/feargreed` get picture of CNN's Fear & Greed Index
 
 <p align="center">

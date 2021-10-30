@@ -190,7 +190,7 @@ class tickergram:
     def ticker_add_emoji(self, ticker):
         emoji_dict = {"SPY": u"\U0001F1FA\U0001F1F8", "QQQ": u"\U0001F4BB", "MCHI": u"\U0001F1E8\U0001F1F3",
                 "FEZ": u"\U0001F1EA\U0001F1FA", "BTC-USD": u"\U000020BF ", "GC=F": u"\U0001F947",
-                "VNQ": u"\U0001F3E0", "^TNX": u"\U0001F4B5"}
+                "VNQ": u"\U0001F3E0", "^TNX": u"\U0001F4B5", "^VIX": u"\U0001F3A2"}
         return emoji_dict.get(ticker, "") + ticker
 
     def ticker_chg_emoji_color(self, sign):
@@ -399,7 +399,7 @@ class tickergram:
         text_msg += "/watch *list\|add\|del* *\[symbol\]* list, add or remove symbol from your watchlist\n"
         text_msg += "/watchlist get an overview of your watchlist\n"
         text_msg += "/watchlistnotify toggle the automatic watchlist notifications on and off\n"
-        text_msg += "/overview get an overview of global ETFs\n"
+        text_msg += "/overview get an overview of global markets\n"
         text_msg += "/feargreed get picture of CNN's Fear & Greed Index\n\n"
         text_msg += u"_Powered by [Tickergram](https://github.com/a0rtega/tickergram-bot)_"
         self.tg_send_msg_post(text_msg, chat["id"])
@@ -553,7 +553,10 @@ class tickergram:
         self.tg_delete_msg(proc_msg)
 
     def bot_cmd_overview(self, chat, text, msg_from):
-        global_tickers = ["#Stocks ETFs", "SPY", "QQQ", "FEZ", "MCHI", "VNQ", "#10Y Bonds", "^TNX", "#Gold", "GC=F", "#Crypto", "BTC-USD"]
+        global_tickers = ["#Stocks ETFs", "SPY", "QQQ",
+                "FEZ", "MCHI", "VNQ", "#VIX", "^VIX",
+                "#10Y Bonds", "^TNX", "#Gold", "GC=F",
+                "#Crypto", "BTC-USD"]
         proc_msg = self.tg_send_msg_post("```\nProcessing, please wait ...\n```", chat["id"])["result"]
         try:
             text_msg = "```\n"
