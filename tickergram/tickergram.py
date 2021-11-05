@@ -97,6 +97,14 @@ class tickergram:
             raise RuntimeError("tg_get_messages not ok")
         return d
 
+    def tg_send_action(self, chat_id, action="typing"):
+        d = {"chat_id": chat_id, "action": action}
+        r = requests.post(self.TG_API+"/sendChatAction", data=d)
+        d = r.json()
+        if not d["ok"]:
+            raise RuntimeError("tg_send_action not ok")
+        return d
+
     def redis_get_db(self):
         return redis.Redis(host=self.REDIS_HOST,
                 port=self.REDIS_PORT, db=self.REDIS_DB)
@@ -429,7 +437,7 @@ class tickergram:
     def bot_cmd_quote(self, chat, text, msg_from):
         ticker = text.replace("/quote ", "").upper()
         if self.valid_ticker(ticker):
-            proc_msg = self.tg_send_msg_post("```\nProcessing, please wait ...\n```", chat["id"])["result"]
+            self.tg_send_action(chat["id"])
             ticker_info = self.generic_get_quote(ticker)
             if ticker_info:
                 short_name = ticker_info["company_name"]
@@ -453,7 +461,6 @@ class tickergram:
                         day_low, day_high, volume, volume_avg, pe, pe_forward, div_yield)
             else:
                 text_msg = "```\nError getting ticker info\n```"
-            self.tg_delete_msg(proc_msg)
         else:
             text_msg = "```\nInvalid ticker\n```"
         self.tg_send_msg_post(text_msg, chat["id"])
@@ -461,7 +468,7 @@ class tickergram:
     def bot_cmd_news(self, chat, text, msg_from):
         ticker = text.replace("/news ", "").upper()
         if self.valid_ticker(ticker):
-            proc_msg = self.tg_send_msg_post("```\nProcessing, please wait ...\n```", chat["id"])["result"]
+            self.tg_send_action(chat["id"])
             ticker_news = self.generic_get_news(ticker)
             if ticker_news:
                 text_msg = ""
@@ -471,7 +478,6 @@ class tickergram:
                 text_msg = text_msg[:-1] # remove last newline
             else:
                 text_msg = "```\nError getting ticker news\n```"
-            self.tg_delete_msg(proc_msg)
         else:
             text_msg = "```\nInvalid ticker\n```"
         self.tg_send_msg_post(text_msg, chat["id"])
@@ -486,7 +492,7 @@ class tickergram:
             ticker = cmd[1].upper()
             if len(self.redis_list_user_watch(chat["id"])) <= 50:
                 if self.valid_ticker(ticker):
-                    proc_msg = self.tg_send_msg_post("```\nProcessing, please wait ...\n```", chat["id"])["result"]
+                    self.tg_send_action(chat["id"])
                     ticker_info = self.generic_get_quote(ticker)
                     if ticker_info:
                         if not self.redis_user_watch_info_exists(chat["id"]):
@@ -495,7 +501,6 @@ class tickergram:
                         text_msg = "```\n{} added to your watchlist\n```".format(ticker)
                     else:
                         text_msg = "```\nError getting ticker info\n```"
-                    self.tg_delete_msg(proc_msg)
                 else:
                     text_msg = "```\nInvalid ticker\n```"
             else:
@@ -512,13 +517,12 @@ class tickergram:
         self.tg_send_msg_post(text_msg, chat["id"])
 
     def bot_cmd_watchlist(self, chat, text, msg_from):
-        proc_msg = self.tg_send_msg_post("```\nProcessing, please wait ...\n```", chat["id"])["result"]
+        self.tg_send_action(chat["id"])
         if not self.redis_list_user_watch(chat["id"]):
             text_msg = "```\nYour watchlist is empty\n```"
             self.tg_send_msg_post(text_msg, chat["id"])
         else:
             self.bot_watchlist_notify(chat["id"])
-        self.tg_delete_msg(proc_msg)
 
     def bot_cmd_watchlistnotify(self, chat, text, msg_from):
         status = self.redis_watch_toggle(chat["id"])
@@ -557,7 +561,7 @@ class tickergram:
 
         interval = self.adjust_chart_interval(chart_td)
 
-        proc_msg = self.tg_send_msg_post("```\nProcessing, please wait ...\n```", chat["id"])["result"]
+        self.tg_send_action(chat["id"], "upload_photo")
         output_pic = self.yf_get_stock_chart(ticker, time_range, interval)
         if os.path.exists(output_pic):
             self.tg_send_pic(output_pic, chat["id"])
@@ -565,14 +569,13 @@ class tickergram:
         else:
             text_msg = "```\nError\n```"
             self.tg_send_msg_post(text_msg, chat["id"])
-        self.tg_delete_msg(proc_msg)
 
     def bot_cmd_overview(self, chat, text, msg_from):
         global_tickers = ["#Stocks ETFs", "SPY", "QQQ",
                 "FEZ", "MCHI", "VNQ", "#VIX", "^VIX",
                 "#10Y Bonds", "^TNX", "#Gold", "GC=F",
                 "#Crypto", "BTC-USD"]
-        proc_msg = self.tg_send_msg_post("```\nProcessing, please wait ...\n```", chat["id"])["result"]
+        self.tg_send_action(chat["id"])
         try:
             text_msg = "```\n"
             for t in global_tickers:
@@ -596,10 +599,9 @@ class tickergram:
             self.logger.error(str(e))
             text_msg = "```\nError\n```"
         self.tg_send_msg_post(text_msg, chat["id"])
-        self.tg_delete_msg(proc_msg)
 
     def bot_cmd_feargreed(self, chat, text, msg_from):
-        proc_msg = self.tg_send_msg_post("```\nProcessing, please wait ...\n```", chat["id"])["result"]
+        self.tg_send_action(chat["id"], "upload_photo")
         output_pic = self.cnn_get_fear_greed()
         if os.path.exists(output_pic):
             self.tg_send_pic(output_pic, chat["id"])
@@ -607,7 +609,6 @@ class tickergram:
         else:
             text_msg = "```\nError\n```"
             self.tg_send_msg_post(text_msg, chat["id"])
-        self.tg_delete_msg(proc_msg)
 
     def bot_cmd_handler(self, fnc, chat, text, msg_from):
         p = multiprocessing.Process(target=fnc, args=(chat, text, msg_from),
