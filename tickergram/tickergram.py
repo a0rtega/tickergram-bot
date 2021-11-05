@@ -43,16 +43,16 @@ class tickergram:
             return False
         return d
 
-    def tg_send_msg(self, text, chat):
-        d = {"chat_id": chat, "text": text, "parse_mode": "MarkdownV2", "disable_web_page_preview": True}
+    def tg_send_msg(self, text, chat_id):
+        d = {"chat_id": chat_id, "text": text, "parse_mode": "MarkdownV2", "disable_web_page_preview": True}
         r = requests.get(self.TG_API+"/sendMessage", params=d)
         d = r.json()
         if not d["ok"]:
             return False
         return d
 
-    def tg_send_msg_post(self, text, chat):
-        d = {"chat_id": chat, "text": text, "parse_mode": "MarkdownV2", "disable_web_page_preview": True}
+    def tg_send_msg_post(self, text, chat_id):
+        d = {"chat_id": chat_id, "text": text, "parse_mode": "MarkdownV2", "disable_web_page_preview": True}
         r = requests.post(self.TG_API+"/sendMessage", params=d)
         d = r.json()
         if not d["ok"]:
@@ -79,8 +79,8 @@ class tickergram:
             raise RuntimeError("tg_delete_msg not ok")
         return d
 
-    def tg_send_pic(self, f, chat):
-        d = {"chat_id": chat}
+    def tg_send_pic(self, f, chat_id):
+        d = {"chat_id": chat_id}
         r = requests.post(self.TG_API+"/sendPhoto", data=d, files={"photo": open(f, "rb")})
         d = r.json()
         if not d["ok"]:
