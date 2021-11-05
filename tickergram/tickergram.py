@@ -18,7 +18,7 @@ class tickergram:
         self.REDIS_PORT = redis_port
         self.REDIS_DB = redis_db
         self.TG_API="https://api.telegram.org/bot" + tg_token
-        self.MAX_CHART_TIME = datetime.timedelta(days=3*365) # 3 years
+        self.MAX_CHART_RANGE = datetime.timedelta(days=3*365) # 3 years
         self.POLLING_TIMEOUT = 600
         # Configure logging
         self.logger = logging.getLogger("tickergram_log")
@@ -279,12 +279,15 @@ class tickergram:
         self.redis_set_quote_cache(ticker, ret_data)
         return ret_data
 
-    def yf_get_stock_chart(self, ticker, time_range="1Y"):
+    def yf_get_stock_chart(self, ticker, time_range="1Y", interval="1D"):
+        # Make YF range and interval formats compatible
         time_range = time_range.replace("M", "MO")
+        interval = interval.replace("W", "WK")
+        interval = interval.replace("M", "MO")
         output_file = "{}.png".format(str(uuid.uuid4()))
         try:
             t = yf.Ticker(ticker)
-            hist = t.history(period=time_range)
+            hist = t.history(period=time_range, interval=interval)
             mpf.plot(hist, type="candle", volume=True, style="mike", datetime_format='%b %Y',
                     figratio=(20,10), tight_layout=True,
                     title="\n{} {}".format(ticker, time_range),
@@ -337,6 +340,16 @@ class tickergram:
             return round((abs(current - previous) / previous) * 100.0, 2)
         except ZeroDivisionError:
             return float("inf")
+
+    def adjust_chart_interval(self, dt_time_range):
+        if dt_time_range <= datetime.timedelta(days=1):
+            return "1H"
+        elif dt_time_range <= datetime.timedelta(days=30):
+            return "1D"
+        elif dt_time_range <= datetime.timedelta(days=365):
+            return "1W"
+        else:
+            return "1M"
 
     def valid_ticker(self, ticker):
         return True if len(ticker) <= 8 and re.fullmatch(r"^[A-Za-z0-9\.\^\-]{1,8}$", ticker) else False
@@ -537,13 +550,15 @@ class tickergram:
             chart_td = datetime.timedelta(days=time_range_int*30)
         else:
             chart_td = datetime.timedelta(days=time_range_int)
-        if (self.MAX_CHART_TIME - chart_td) < datetime.timedelta(0):
+        if (self.MAX_CHART_RANGE - chart_td) < datetime.timedelta(0):
             text_msg = "```\nChart time range exceeds the limit\n```"
             self.tg_send_msg_post(text_msg, chat["id"])
             return
 
+        interval = self.adjust_chart_interval(chart_td)
+
         proc_msg = self.tg_send_msg_post("```\nProcessing, please wait ...\n```", chat["id"])["result"]
-        output_pic = self.yf_get_stock_chart(ticker, time_range)
+        output_pic = self.yf_get_stock_chart(ticker, time_range, interval)
         if os.path.exists(output_pic):
             self.tg_send_pic(output_pic, chat["id"])
             os.remove(output_pic)
