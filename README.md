@@ -45,7 +45,7 @@ Or continue reading and get your own bot running in no time!
 
 ```
 $ tickergram-bot -h
-usage: tickergram-bot [-h] [-p PASSWORD] [-r REDIS] [-l PORT] [-d DB] token
+usage: tickergram-bot [-h] [-p PASSWORD] [-a ALLOW] [-r REDIS] [-l PORT] [-d DB] token
 
 Tickergram bot
 
@@ -55,7 +55,9 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   -p PASSWORD, --password PASSWORD
-                        Optional password needed to interact with the bot (enables the /auth command)
+                        Set a password required to interact with the bot (enables the /auth command)
+  -a ALLOW, --allow ALLOW
+                        Allow certain commands without requiring the password, comma-separated list (example: /quote,/chart)
   -r REDIS, --redis REDIS
                         redis host to use
   -l PORT, --port PORT  redis port to use
