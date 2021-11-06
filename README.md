@@ -70,7 +70,6 @@ $ tickergram-bot <token>
 2021-09-28 19:52:58,942 Telegram API token is valid
 2021-09-28 19:52:58,942 Testing Redis connectivity ...
 2021-09-28 19:52:58,944 Redis connection is ok
-2021-09-28 19:52:58,946 Bot is running with pid 116526
 ```
 
 ## Usage

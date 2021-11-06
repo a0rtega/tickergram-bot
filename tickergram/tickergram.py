@@ -618,7 +618,8 @@ class tickergram:
     def bot_loop(self):
         self.test_tg_or_die()
         self.test_redis_or_die()
-        self.logger.info("Bot is running with pid {}".format(self.write_pidfile()))
+        # Disable pidfile creation to allow multiple bot instances
+        #self.logger.info("Bot is running with pid {}".format(self.write_pidfile()))
         last_update_id = 0
         while True:
             try:
