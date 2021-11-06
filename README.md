@@ -9,7 +9,7 @@ Tickergram is a Telegram bot to look up quotes, charts, general market sentiment
 
 ## Supporting Tickergram
 
-I run an instance of Tickergram at [@tickergrambot](https://t.me/tickergrambot). By becoming a sponsor, you will support the project and get access to this bot instance. Check the [sponsor](https://github.com/sponsors/a0rtega) tiers for more information.
+I run an instance of Tickergram at [@tickergrambot](https://t.me/tickergrambot) with the `/quote` command openly available. By becoming a sponsor, you will support the project and get **full** access to this bot instance. Check the [sponsor](https://github.com/sponsors/a0rtega) tiers for more information.
 
 Or continue reading and get your own bot running in no time!
 
