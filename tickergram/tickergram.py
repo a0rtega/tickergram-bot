@@ -10,13 +10,14 @@ import locale
 locale.setlocale(locale.LC_ALL, "en_US.utf8")
 
 class tickergram:
-    def __init__(self, tg_token, redis_host, redis_port, redis_db, password=""):
+    def __init__(self, tg_token, redis_host, redis_port, redis_db, password="", allow_commands=[]):
         # Configuration
         self.BOT_PASSWORD = password
         self.BOT_ENABLED_PASS = True if password else False
         self.REDIS_HOST = redis_host
         self.REDIS_PORT = redis_port
         self.REDIS_DB = redis_db
+        self.ALLOW_COMMANDS = allow_commands
         self.TG_API="https://api.telegram.org/bot" + tg_token
         self.MAX_CHART_RANGE = datetime.timedelta(days=3*365) # 3 years
         self.POLLING_TIMEOUT = 600
@@ -655,6 +656,9 @@ class tickergram:
                 # Remove explicit bot mention if found
                 # (telegram bot accounts always end with "bot")
                 text = re.sub(r"@[\w\.\-]+bot", "", text, flags=re.IGNORECASE)
+                # Allow command if it's explicitly allowed (--allow)
+                if text.split(" ")[0] in self.ALLOW_COMMANDS:
+                    chat_auth = True
                 # Handle commands
                 if text in ("/help", "/start"):
                     self.bot_cmd_help(chat, text, msg_from)
@@ -688,13 +692,15 @@ class tickergram:
 def main():
     parser = argparse.ArgumentParser(description="Tickergram bot")
     parser.add_argument("token", help="Telegram Bot API token", nargs=1)
-    parser.add_argument("-p", "--password", default="", help="Optional password needed to interact with the bot (enables the /auth command)")
+    parser.add_argument("-p", "--password", default="", help="Set a password required to interact with the bot (enables the /auth command)")
+    parser.add_argument("-a", "--allow", default="", help="Allow certain commands without requiring the password, comma-separated list (example: /quote,/chart)",
+            type=lambda s: [i for i in s.split(",")])
     parser.add_argument("-r", "--redis", default="localhost", help="redis host to use")
     parser.add_argument("-l", "--port", type=int, default=6379, help="redis port to use")
     parser.add_argument("-d", "--db", type=int, default=0, help="redis database to use")
     args = parser.parse_args()
 
-    b = tickergram(args.token[0], redis_host=args.redis, redis_port=args.port, redis_db=args.db, password=args.password)
+    b = tickergram(args.token[0], redis_host=args.redis, redis_port=args.port, redis_db=args.db, password=args.password, allow_commands=args.allow)
     b.bot_loop()
 
 def notify_watchers():
