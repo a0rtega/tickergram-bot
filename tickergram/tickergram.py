@@ -403,12 +403,12 @@ class tickergram:
     def bot_auth_chat(self, chat):
         return self.redis_check_chat_auth(chat["id"])
 
-    def bot_antiflood_check(self, msg_from, msg_date):
+    def bot_antiflood_check(self, msg_from, msg_time):
         for u in list(self.antiflood_cache.keys()):
-            if self.antiflood_cache[u] + self.ANTI_FLOOD_SECS < msg_date:
+            if self.antiflood_cache[u] + self.ANTI_FLOOD_SECS < msg_time:
                 del self.antiflood_cache[u]
         hit_antiflood = msg_from["id"] in self.antiflood_cache.keys()
-        self.antiflood_cache[msg_from["id"]] = msg_date
+        self.antiflood_cache[msg_from["id"]] = msg_time
         return hit_antiflood
 
     def bot_cmd_help(self, chat, text, msg_from):
@@ -632,16 +632,20 @@ class tickergram:
             for m in msgs["result"]:
                 try:
                     update_id = m["update_id"]
-                    chat = m["message"]["chat"]
-                    text = m["message"]["text"]
-                    msg_from = m["message"]["from"]
-                    msg_date = m["message"]["date"]
+                    # Support for telegram edited messages
+                    if "edited_message" in m.keys():
+                        msg_key = "edited_message"
+                    else:
+                        msg_key = "message"
+                    chat = m[msg_key]["chat"]
+                    text = m[msg_key]["text"]
+                    msg_from = m[msg_key]["from"]
                 except Exception as e:
                     self.logger.error("Error parsing update: {}".format(m))
                     last_update_id = update_id + 1
                     continue
                 self.logger.debug("{} {} {}".format(msg_from, chat, text))
-                hit_antiflood = self.bot_antiflood_check(msg_from, msg_date)
+                hit_antiflood = self.bot_antiflood_check(msg_from, time.time())
                 if hit_antiflood:
                     self.logger.warning("User hit antiflood protection")
                     # Increase update id
