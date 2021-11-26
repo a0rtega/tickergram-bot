@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import time, sys, os, uuid, tempfile, re, subprocess, json, logging, datetime, multiprocessing, argparse, shutil
+import time, sys, os, uuid, tempfile, re, subprocess, json, logging, datetime, multiprocessing, threading, argparse, shutil
 import requests
 import yfinance as yf
 import mplfinance as mpf
@@ -105,6 +105,15 @@ class tickergram:
         if not d["ok"]:
             raise RuntimeError("tg_send_action not ok")
         return d
+
+    def tg_start_action(self, chat_id, action="typing"):
+        # Wrapper for tg_send_action that sends the action
+        # in intervals on different threads using threading.Timer
+        self.tg_send_action(chat_id, action=action)
+        # Recursive call to setup the Timer every 5 seconds
+        t = threading.Timer(5.0, self.tg_start_action, kwargs={"chat_id": chat_id, "action": action})
+        t.daemon = True
+        t.start()
 
     def redis_get_db(self):
         return redis.Redis(host=self.REDIS_HOST,
@@ -438,7 +447,7 @@ class tickergram:
     def bot_cmd_quote(self, chat, text, msg_from):
         ticker = text.replace("/quote ", "").upper()
         if self.valid_ticker(ticker):
-            self.tg_send_action(chat["id"])
+            self.tg_start_action(chat["id"])
             ticker_info = self.generic_get_quote(ticker)
             if ticker_info:
                 short_name = ticker_info["company_name"]
@@ -469,7 +478,7 @@ class tickergram:
     def bot_cmd_news(self, chat, text, msg_from):
         ticker = text.replace("/news ", "").upper()
         if self.valid_ticker(ticker):
-            self.tg_send_action(chat["id"])
+            self.tg_start_action(chat["id"])
             ticker_news = self.generic_get_news(ticker)
             if ticker_news:
                 text_msg = ""
@@ -493,7 +502,7 @@ class tickergram:
             ticker = cmd[1].upper()
             if len(self.redis_list_user_watch(chat["id"])) <= 50:
                 if self.valid_ticker(ticker):
-                    self.tg_send_action(chat["id"])
+                    self.tg_start_action(chat["id"])
                     ticker_info = self.generic_get_quote(ticker)
                     if ticker_info:
                         if not self.redis_user_watch_info_exists(chat["id"]):
@@ -518,7 +527,7 @@ class tickergram:
         self.tg_send_msg_post(text_msg, chat["id"])
 
     def bot_cmd_watchlist(self, chat, text, msg_from):
-        self.tg_send_action(chat["id"])
+        self.tg_start_action(chat["id"])
         if not self.redis_list_user_watch(chat["id"]):
             text_msg = "```\nYour watchlist is empty\n```"
             self.tg_send_msg_post(text_msg, chat["id"])
@@ -562,7 +571,7 @@ class tickergram:
 
         interval = self.adjust_chart_interval(chart_td)
 
-        self.tg_send_action(chat["id"], "upload_photo")
+        self.tg_start_action(chat["id"], "upload_photo")
         output_pic = self.yf_get_stock_chart(ticker, time_range, interval)
         if os.path.exists(output_pic):
             self.tg_send_pic(output_pic, chat["id"])
@@ -576,7 +585,7 @@ class tickergram:
                 "FEZ", "MCHI", "VNQ", "#VIX", "^VIX",
                 "#10Y Bonds", "^TNX", "#Gold", "GC=F",
                 "#Crypto", "BTC-USD"]
-        self.tg_send_action(chat["id"])
+        self.tg_start_action(chat["id"])
         try:
             text_msg = "```\n"
             for t in global_tickers:
@@ -602,7 +611,7 @@ class tickergram:
         self.tg_send_msg_post(text_msg, chat["id"])
 
     def bot_cmd_feargreed(self, chat, text, msg_from):
-        self.tg_send_action(chat["id"], "upload_photo")
+        self.tg_start_action(chat["id"], "upload_photo")
         output_pic = self.cnn_get_fear_greed()
         if os.path.exists(output_pic):
             self.tg_send_pic(output_pic, chat["id"])
@@ -612,8 +621,8 @@ class tickergram:
             self.tg_send_msg_post(text_msg, chat["id"])
 
     def bot_cmd_handler(self, fnc, chat, text, msg_from):
-        p = multiprocessing.Process(target=fnc, args=(chat, text, msg_from),
-                daemon=True)
+        p = multiprocessing.Process(target=fnc, args=(chat, text, msg_from))
+        p.daemon = True
         p.start()
 
     def bot_loop(self):
