@@ -682,6 +682,10 @@ class tickergram:
                             "/watch", "/watchlist", "/watchlistnotify",
                             "/overview", "/feargreed"):
                         text_msg = "```\nUnauthorized\n```"
+                        if self.ALLOW_COMMANDS:
+                            text_msg += "Commands allowed without authentication: {}\n".format(
+                                    " ".join(self.ALLOW_COMMANDS))
+                            text_msg += "Type /help for more information"
                         self.tg_send_msg_post(text_msg, chat["id"])
                     elif chat_auth and text.startswith("/quote "):
                         self.bot_cmd_handler(self.bot_cmd_quote, chat, text, msg_from)
@@ -707,7 +711,7 @@ def main():
     parser.add_argument("token", help="Telegram Bot API token", nargs=1)
     parser.add_argument("-p", "--password", default="", help="Set a password required to interact with the bot (enables the /auth command)")
     parser.add_argument("-a", "--allow", default="", help="Allow certain commands without requiring the password, comma-separated list (example: /quote,/chart)",
-            type=lambda s: [i for i in s.split(",")])
+            type=lambda s: [i for i in s.split(",")] if s else [])
     parser.add_argument("-r", "--redis", default="localhost", help="redis host to use")
     parser.add_argument("-l", "--port", type=int, default=6379, help="redis port to use")
     parser.add_argument("-d", "--db", type=int, default=0, help="redis database to use")
