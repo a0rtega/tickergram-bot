@@ -2,3 +2,5 @@ mplfinance
 redis
 requests
 yfinance
+plotly
+kaleido

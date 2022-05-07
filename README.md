@@ -34,7 +34,6 @@ Or continue reading and get your own bot running in no time!
 - Python 3.9+
 - Python requirements, most notably [yfinance](https://github.com/ranaroussi/yfinance), which is used to get financial information. The data provider may change in the future.
 - [Redis](https://redis.io/), used as database to keep both permanent and temporary data (cache).
-- (_Optional_) Firefox is used by bot commands that take website screenshots, such as `/feargreed`.
 
 ## Installation
 

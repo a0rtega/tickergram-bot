@@ -5,6 +5,7 @@ import requests
 import yfinance as yf
 import mplfinance as mpf
 import redis
+import plotly.graph_objects as plotly_go
 
 import locale
 locale.setlocale(locale.LC_ALL, "en_US.utf8")
@@ -327,7 +328,7 @@ class tickergram:
                     datetime.datetime.fromtimestamp(n["providerPublishTime"])})
         return ret_data
 
-    def cnn_get_fear_greed(self):
+    def cnn_get_fear_greed_ff(self):
         output_file = "{}.png".format(str(uuid.uuid4()))
         cache_pic = self.redis_get_feargreed_cache()
         if cache_pic:
@@ -350,6 +351,42 @@ class tickergram:
             shutil.rmtree(profile_path)
         except:
             pass
+
+    def cnn_get_fear_greed(self):
+        output_file = "{}.png".format(str(uuid.uuid4()))
+        cache_pic = self.redis_get_feargreed_cache()
+        if cache_pic:
+            with open(output_file, "wb") as f:
+                f.write(cache_pic)
+        else:
+            date_str = datetime.datetime.now().strftime("%Y-%m-%d")
+            r = requests.get("https://production.dataviz.cnn.io/index/fearandgreed/graphdata/{}".format(date_str))
+            if r.status_code == 200:
+                fg_data = r.json()
+                fg_score = round(fg_data.get("fear_and_greed", {}).get("score", 0), 2)
+                fg_rating = fg_data.get("fear_and_greed", {}).get("rating", "Error")
+                fg_prev = round(fg_data.get("fear_and_greed", {}).get("previous_close", 0), 2)
+                fg_ts = fg_data.get("fear_and_greed", {}).get("timestamp", "")
+                fig = plotly_go.Figure(plotly_go.Indicator(
+                    mode = "gauge+number+delta",
+                    value = fg_score,
+                    delta = {"reference": fg_prev},
+                    title = {"text": "Current Rating ({}): {}".format(fg_ts[0:10], fg_rating.capitalize())},
+                    gauge = {"axis": {"range": [0,100]},
+                        "bar": {"color": "black"},
+                        "steps": [
+                            {"range": [0,25], "color": "purple",},
+                            {"range": [25,50], "color": "mediumpurple",},
+                            {"range": [50,75], "color": "royalblue",},
+                            {"range": [75,100], "color": "blue",}
+                            ],
+                        }))
+                fig.update_layout(paper_bgcolor = "lavender", font = {"color": "indigo", "family": "Courier New"})
+                fig.write_image(output_file)
+                if os.path.exists(output_file):
+                    with open(output_file, "rb") as f:
+                        self.redis_set_feargreed_cache(f.read())
+        return output_file
 
     def get_change(self, current, previous):
         if current == previous:
