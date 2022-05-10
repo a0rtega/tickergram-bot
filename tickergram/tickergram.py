@@ -360,7 +360,9 @@ class tickergram:
                 f.write(cache_pic)
         else:
             date_str = datetime.datetime.now().strftime("%Y-%m-%d")
-            r = requests.get("https://production.dataviz.cnn.io/index/fearandgreed/graphdata/{}".format(date_str))
+            r = requests.get("https://production.dataviz.cnn.io/index/fearandgreed/graphdata/{}".format(date_str),
+                    headers={"User-Agent": "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)",
+                             "Origin": "https://edition.cnn.com", "Referer": "https://edition.cnn.com/"})
             if r.status_code == 200:
                 fg_data = r.json()
                 fg_score = round(fg_data.get("fear_and_greed", {}).get("score", 0), 2)
