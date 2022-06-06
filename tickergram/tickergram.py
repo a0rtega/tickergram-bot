@@ -403,7 +403,7 @@ class tickergram:
             return "1M"
 
     def valid_ticker(self, ticker):
-        return True if len(ticker) <= 8 and re.fullmatch(r"^[A-Za-z0-9\.\^\-]{1,8}$", ticker) else False
+        return True if len(ticker) <= 10 and re.fullmatch(r"^[A-Za-z0-9\.\^\-]{1,10}$", ticker) else False
 
     def bot_watchlist_notify_thread(self, chat_id):
         if not self.tg_chat_exists(int(chat_id)):
