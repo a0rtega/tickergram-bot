@@ -65,13 +65,7 @@ class tickergram:
         d = {"chat_id": chat_id}
         r = requests.get(self.TG_API+"/getChat", params=d)
         d = r.json()
-        if d["ok"]:
-            return True
-        elif not d["ok"] and d["error_code"] == 400:
-            return False
-        else:
-            raise RuntimeError("tg_chat_exists not ok")
-        return d
+        return d.get("ok", False)
 
     def tg_delete_msg(self, tg_message):
         d = {"chat_id": tg_message["chat"]["id"], "message_id": tg_message["message_id"]}
