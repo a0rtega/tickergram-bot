@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import time, sys, os, uuid, tempfile, re, subprocess, json, logging, datetime, multiprocessing, threading, argparse, shutil
+import time, sys, os, uuid, tempfile, re, subprocess, json, logging, datetime, multiprocessing, threading, argparse, shutil, concurrent.futures
 import requests
 import yfinance as yf
 import mplfinance as mpf
@@ -405,6 +405,35 @@ class tickergram:
     def valid_ticker(self, ticker):
         return True if len(ticker) <= 8 and re.fullmatch(r"^[A-Za-z0-9\.\^\-]{1,8}$", ticker) else False
 
+    def bot_watchlist_notify_thread(self, chat_id):
+        if not self.tg_chat_exists(int(chat_id)):
+            # Chat doesn't exist anymore, disable automatic notifications for this watchlist
+            self.redis_watch_disable(chat_id)
+            self.logger.warning("Telegram chat id {} does not exist, automatic notifications disabled".format(chat_id))
+            return False
+        wl_tickers = self.redis_list_user_watch(chat_id)
+        if not wl_tickers:
+            return False
+        text_msg = "```\n"
+        for t in wl_tickers:
+            t = t.decode()
+            ticker_info = self.generic_get_quote(t)
+            if not ticker_info:
+                continue
+            price = ticker_info["latest_price"]
+            price_prevclose = ticker_info["previous_close"]
+            ftweek_high = ticker_info["52w_high"]
+            # Get price changes
+            price_change = self.get_change(price, price_prevclose)
+            ftweek_high_chg = self.get_change(price, ftweek_high)
+            # Compose message text
+            text_msg += self.text_quote_short(t, price, price_prevclose, price_change, ftweek_high, ftweek_high_chg)
+        text_msg += "```"
+        if not self.tg_send_msg_post(text_msg, chat_id):
+            # Error delivering message, disable automatic notifications for this watchlist
+            self.redis_watch_disable(chat_id)
+            self.logger.warning("Telegram chat id {} could not send message, automatic notifications disabled".format(chat_id))
+
     def bot_watchlist_notify(self, chat_id=None):
         if chat_id:
             # Craft a fake watchlist list for this chat
@@ -414,33 +443,12 @@ class tickergram:
             self.test_tg_or_die()
             self.test_redis_or_die()
             watchlists = self.redis_list_enabled_watchlists()
-        for chat_id in watchlists:
-            chat_id = chat_id.decode() if type(chat_id) is not str else chat_id
-            if not self.tg_chat_exists(int(chat_id)):
-                # Chat doesn't exist anymore, disable automatic notifications for this watchlist
-                self.redis_watch_disable(chat_id)
-                continue
-            wl_tickers = self.redis_list_user_watch(chat_id)
-            if not wl_tickers:
-                continue
-            text_msg = "```\n"
-            for t in wl_tickers:
-                t = t.decode()
-                ticker_info = self.generic_get_quote(t)
-                if not ticker_info:
-                    continue
-                price = ticker_info["latest_price"]
-                price_prevclose = ticker_info["previous_close"]
-                ftweek_high = ticker_info["52w_high"]
-                # Get price changes
-                price_change = self.get_change(price, price_prevclose)
-                ftweek_high_chg = self.get_change(price, ftweek_high)
-                # Compose message text
-                text_msg += self.text_quote_short(t, price, price_prevclose, price_change, ftweek_high, ftweek_high_chg)
-            text_msg += "```"
-            if not self.tg_send_msg_post(text_msg, chat_id):
-                # Error delivering message, disable automatic notifications for this watchlist
-                self.redis_watch_disable(chat_id)
+        # Execute watchlist notify function in different threads
+        # to improve performance fetching quotes and sending messages
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            for chat_id in watchlists:
+                chat_id = chat_id.decode() if type(chat_id) is not str else chat_id
+                executor.submit(self.bot_watchlist_notify_thread, chat_id)
 
     def bot_auth_chat(self, chat):
         return self.redis_check_chat_auth(chat["id"])
