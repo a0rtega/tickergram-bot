@@ -268,6 +268,8 @@ class tickergram:
             ty_fast_info = ty.fast_info
         except:
             return None
+        if None in (ty_info, ty_fast_info):
+            return None
         if "shortName" not in ty_info.keys() or "last_price" not in ty_fast_info.keys():
             return None
         ret_data["company_name"] = ty_info["shortName"]
@@ -420,6 +422,7 @@ class tickergram:
             t = t.decode()
             ticker_info = self.generic_get_quote(t)
             if not ticker_info:
+                text_msg += "Error getting {} data\n".format(t)
                 continue
             price = ticker_info["latest_price"]
             price_prevclose = ticker_info["previous_close"]
