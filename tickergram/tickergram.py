@@ -270,18 +270,18 @@ class tickergram:
             return None
         if None in (ty_info, ty_fast_info):
             return None
-        if "shortName" not in ty_info.keys() or "last_price" not in ty_fast_info.keys():
+        if "shortName" not in ty_info.keys() or "lastPrice" not in ty_fast_info.keys():
             return None
         ret_data["company_name"] = ty_info["shortName"]
-        ret_data["latest_price"] = round(ty_fast_info["last_price"], 2)
-        ret_data["previous_close"] = round(ty_fast_info["previous_close"], 2)
-        ret_data["52w_high"] = round(ty_fast_info["year_high"], 2)
-        ret_data["52w_low"] = round(ty_fast_info["year_low"], 2)
-        ret_data["day_high"] = round(ty_fast_info["day_high"], 2)
-        ret_data["day_low"] = round(ty_fast_info["day_low"], 2)
-        ret_data["market_volume"] = ty_fast_info["last_volume"]
+        ret_data["latest_price"] = round(ty_fast_info["lastPrice"], 2)
+        ret_data["previous_close"] = round(ty_fast_info["previousClose"], 2)
+        ret_data["52w_high"] = round(ty_fast_info["yearHigh"], 2)
+        ret_data["52w_low"] = round(ty_fast_info["yearLow"], 2)
+        ret_data["day_high"] = round(ty_fast_info["dayHigh"], 2)
+        ret_data["day_low"] = round(ty_fast_info["dayLow"], 2)
+        ret_data["market_volume"] = ty_fast_info["lastVolume"]
         ret_data["market_volume"] = f'{ret_data["market_volume"]:n}'
-        ret_data["market_volume_avg"] = ty_fast_info["three_month_average_volume"]
+        ret_data["market_volume_avg"] = ty_fast_info["threeMonthAverageVolume"]
         ret_data["market_volume_avg"] = f'{ret_data["market_volume_avg"]:n}'
         pe = ty_info.get("trailingPE", None)
         pe = "{:.2f}".format(round(pe, 2)) if pe else "N/A"
