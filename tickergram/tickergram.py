@@ -3,6 +3,7 @@
 import time, sys, os, uuid, tempfile, re, subprocess, json, logging, datetime, multiprocessing, threading, argparse, shutil, concurrent.futures
 import requests
 import yfinance as yf
+import yahooquery
 import mplfinance as mpf
 import redis
 import plotly.graph_objects as plotly_go
@@ -248,8 +249,8 @@ class tickergram:
 
     def generic_get_quote(self, ticker):
         # Easily replace the quote provider here, using the same standard
-        # output format used in yf_get_quote
-        return self.yf_get_quote(ticker)
+        # output format used in yq_get_quote
+        return self.yq_get_quote(ticker)
 
     def generic_get_news(self, ticker):
         # Easily replace the data provider here, using the same standard
@@ -323,6 +324,45 @@ class tickergram:
             for n in ty_news:
                 ret_data.append({"title": n["title"], "link": n["link"], "time":
                     datetime.datetime.fromtimestamp(n["providerPublishTime"])})
+        return ret_data
+
+    def yq_get_quote(self, ticker):
+        # Get ticker cache before querying YQ
+        quote_cache = self.redis_get_quote_cache(ticker)
+        if quote_cache:
+            return quote_cache
+        ret_data = {}
+        try:
+            ty = yahooquery.Ticker(ticker)
+            ty_info = ty.summary_detail.get(ticker, None)
+            ty_price = ty.price.get(ticker, None)
+        except:
+            return None
+        if None in (ty_info,ty_price):
+            return None
+        if "fiftyTwoWeekLow" not in ty_info.keys() or "regularMarketPrice" not in ty_price.keys():
+            return None
+        ret_data["company_name"] = ty_price.get("shortName", "")
+        ret_data["latest_price"] = round(ty_price["regularMarketPrice"], 2)
+        ret_data["previous_close"] = round(ty_price["regularMarketPreviousClose"], 2)
+        ret_data["52w_high"] = round(ty_info["fiftyTwoWeekHigh"], 2)
+        ret_data["52w_low"] = round(ty_info["fiftyTwoWeekLow"], 2)
+        ret_data["day_high"] = round(ty_info["dayHigh"], 2)
+        ret_data["day_low"] = round(ty_info["dayLow"], 2)
+        ret_data["market_volume"] = ty_info["volume"]
+        ret_data["market_volume"] = f'{ret_data["market_volume"]:n}'
+        ret_data["market_volume_avg"] = ty_info["averageVolume"]
+        ret_data["market_volume_avg"] = f'{ret_data["market_volume_avg"]:n}'
+        pe = ty_info.get("trailingPE", None)
+        pe = "{:.2f}".format(round(pe, 2)) if pe else "N/A"
+        ret_data["pe_trailing"] = pe
+        pe_forward = ty_info.get("forwardPE", None)
+        pe_forward = "{:.2f}".format(round(pe_forward, 2)) if pe_forward else "N/A"
+        ret_data["pe_forward"] = pe_forward
+        div_yield = ty_info.get("dividendYield", None)
+        div_yield = "{:.2f}%".format(round(div_yield*100, 2)) if div_yield else "N/A"
+        ret_data["div_yield"] = div_yield
+        self.redis_set_quote_cache(ticker, ret_data)
         return ret_data
 
     def cnn_get_fear_greed_ff(self):
