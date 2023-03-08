@@ -365,6 +365,28 @@ class tickergram:
         self.redis_set_quote_cache(ticker, ret_data)
         return ret_data
 
+    def yq_get_stock_chart(self, ticker, time_range="1Y", interval="1D"):
+        # Make YQ range and interval formats compatible
+        time_range = time_range.replace("Y", "y")
+        time_range = time_range.replace("M", "mo")
+        time_range = time_range.replace("D", "d")
+        interval = interval.replace("H", "h")
+        interval = interval.replace("D", "d")
+        interval = interval.replace("W", "wk")
+        interval = interval.replace("M", "mo")
+        output_file = "{}.png".format(str(uuid.uuid4()))
+        try:
+            t = yahooquery.Ticker(ticker)
+            hist = t.history(period=time_range, interval=interval)
+            hist = hist.reset_index([0]) # remove symbol from MultiIndex
+            mpf.plot(hist, type="candle", volume=True, style="mike", datetime_format='%b %Y',
+                    figratio=(20,10), tight_layout=True,
+                    title="\n{} {}".format(ticker, time_range),
+                    savefig=dict(fname=output_file, dpi=95))
+        except:
+            pass
+        return output_file
+
     def cnn_get_fear_greed_ff(self):
         output_file = "{}.png".format(str(uuid.uuid4()))
         cache_pic = self.redis_get_feargreed_cache()
@@ -657,7 +679,7 @@ class tickergram:
         interval = self.adjust_chart_interval(chart_td)
 
         self.tg_start_action(chat["id"], "upload_photo")
-        output_pic = self.yf_get_stock_chart(ticker, time_range, interval)
+        output_pic = self.yq_get_stock_chart(ticker, time_range, interval)
         if os.path.exists(output_pic):
             self.tg_send_pic(output_pic, chat["id"])
             os.remove(output_pic)
